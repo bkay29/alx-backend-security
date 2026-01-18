@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
+from django.conf.urls import url
+import dj_database_url
 import os
 
 # Load environment variables from .env file
@@ -33,7 +35,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ENABLE_IP_LOGGING = os.getenv('ENABLE_IP_LOGGING', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -47,10 +49,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ip_tracking',
     'django_ratelimit',
+    'rest_framework',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # for static files on Render
     'ip_tracking.middleware.IPTrackingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,10 +89,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / os.getenv('DATABASE_NAME', 'db.sqlite3'),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'))
 }
 
 
@@ -126,14 +129,37 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = 'media/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+#WhiteNoise storage for static files on Render
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')  # RabbitMQ URL
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+
+# EMAIL CONFIGURATION
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
