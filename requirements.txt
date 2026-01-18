@@ -30,6 +30,7 @@ multidict==6.7.0
 packaging==25.0
 prompt_toolkit==3.0.52
 propcache==0.4.1
+psycopg2-binary==2.9.11
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
 python-ipware==3.0.0
