@@ -1,1 +1,8 @@
 .env
+venv/
+
+*.sqlite3
+/staticfiles/
+media/
+
+geoip/
