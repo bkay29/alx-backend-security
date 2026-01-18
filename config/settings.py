@@ -21,7 +21,7 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
+GEOIP_PATH = os.getenv('GEOIP_PATH', None)
 
 
 # Quick-start development settings - unsuitable for production
